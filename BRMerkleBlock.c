@@ -31,8 +31,8 @@
 #include <string.h>
 #include <assert.h>
 
-#define MAX_PROOF_OF_WORK 0x1e0fffff    // highest value for difficulty target (higher values are less difficult)
-#define TARGET_TIMESPAN   302400        // = 3.5*24*60*60; the targeted timespan between difficulty target adjustments
+#define MAX_PROOF_OF_WORK 0x1e01ffff    // highest value for difficulty target (higher values are less difficult)
+#define TARGET_TIMESPAN   (14*24*60*60)        // = 3.5*24*60*60; the targeted timespan between difficulty target adjustments
 
 inline static int _ceil_log2(int x)
 {
@@ -269,19 +269,19 @@ int BRMerkleBlockIsValid(const BRMerkleBlock *block, uint32_t currentTime)
     // check if merkle root is correct
     if (block->totalTx > 0 && ! UInt256Eq(merkleRoot, block->merkleRoot)) {
         r = 0;
-        loaf_log("invalid merkleRoot: %s - %s", u256_hex_encode(merkleRoot), u256_hex_encode(block->merkleRoot));
+        vienna_log("invalid merkleRoot: %s - %s", u256_hex_encode(merkleRoot), u256_hex_encode(block->merkleRoot));
     }
     
     // check if timestamp is too far in future
     if (block->timestamp > currentTime + BLOCK_MAX_TIME_DRIFT) {
         r = 0;
-        loaf_log("timestamp too far in future for block (%s, height = %d): %d - %d", u256_hex_encode(block->blockHash), block->height, block->timestamp, (currentTime + BLOCK_MAX_TIME_DRIFT));
+        vienna_log("timestamp too far in future for block (%s, height = %d): %d - %d", u256_hex_encode(block->blockHash), block->height, block->timestamp, (currentTime + BLOCK_MAX_TIME_DRIFT));
     }
     
     // check if proof-of-work target is out of range
     if (target == 0 || target & 0x00800000 || size > maxsize || (size == maxsize && target > maxtarget)) {
         r = 0;
-        loaf_log("target is out of range: %x - %x - %x - %x", target, maxtarget, size, maxsize);
+        vienna_log("target is out of range: %x - %x - %x - %x", target, maxtarget, size, maxsize);
     }
     
     if (size > 3) UInt32SetLE(&t.u8[size - 3], target);
@@ -291,7 +291,7 @@ int BRMerkleBlockIsValid(const BRMerkleBlock *block, uint32_t currentTime)
         if (block->powHash.u8[i] < t.u8[i]) break;
         if (block->powHash.u8[i] > t.u8[i]) {
             r = 0;
-            loaf_log("invalid pow[%d]: %x - %x", i, block->powHash.u8[i], t.u8[i]);
+            vienna_log("invalid pow[%d]: %x - %x", i, block->powHash.u8[i], t.u8[i]);
         }
     }
     
